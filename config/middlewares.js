@@ -29,18 +29,6 @@ module.exports = [
     },
   },
   "strapi::cors",
-  {
-    name: "bodyparser",
-    resolve: "koa-bodyparser",
-    options: {
-      enableTypes: ["json", "form", "text"],
-      jsonLimit: "50mb",
-      formLimit: "50mb",
-      textLimit: "50mb",
-    },
-    enabled: true,
-    before: "strapi::router",
-  },
   "strapi::poweredBy",
   "strapi::logger",
   "strapi::query",
