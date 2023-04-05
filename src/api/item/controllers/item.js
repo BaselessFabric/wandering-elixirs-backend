@@ -19,7 +19,7 @@ module.exports = createCoreController(
           webhookSecret
         );
 
-        console.log(event);
+        strapi.log.debug(event);
 
         if (event.type === "checkout.session.completed") {
           const checkoutSession = await stripe.checkout.sessions.retrieve(
@@ -27,7 +27,7 @@ module.exports = createCoreController(
             { expand: ["line_items"] }
           );
 
-          console.log(checkoutSession);
+          strapi.log.debug(checkoutSession);
 
           // Loop through the line items in the checkout session
           for (const lineItem of checkoutSession.line_items) {
@@ -54,7 +54,7 @@ module.exports = createCoreController(
         }
       } catch (err) {
         // Handle any errors that occur during the update process
-        console.log(err);
+        strapi.log.debug(err);
         ctx.send({ received: false, error: err });
       }
     },
