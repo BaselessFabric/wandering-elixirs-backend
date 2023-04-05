@@ -1,63 +1,53 @@
 "use strict";
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Import the Stripe module
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-const { createCoreController } = require("@strapi/strapi").factories;
+module.exports = {
+  /**
+   * Handle a Stripe webhook event for a successful checkout
+   */
+  async handleCheckoutSuccess(ctx) {
+    const { body, headers } = ctx.request;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-module.exports = createCoreController(
-  "api::item.item",
-  {
-    // Define a custom action to handle the webhook request from Stripe
-    async webhook(ctx) {
-      const { body, headers } = ctx.request;
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    try {
+      const event = stripe.webhooks.constructEvent(
+        body,
+        headers["stripe-signature"],
+        webhookSecret
+      );
 
-      try {
-        const event = stripe.webhooks.constructEvent(
-          body,
-          headers["stripe-signature"],
-          webhookSecret
+      if (event.type === "checkout.session.completed") {
+        const session = await stripe.checkout.sessions.retrieve(
+          event.data.object.id,
+          { expand: ["line_items"] }
         );
 
-        const { data } = ctx.request.body;
-
-        console.log(data);
-
-        // Loop through the line items in the Stripe webhook payload
-        for (const item of data.object.lines.data) {
-          const { id, quantity } = item; // Extract the product ID and quantity
+        for (const item of session.line_items.data) {
+          const productId = item.price.product;
+          const quantity = item.quantity;
 
           // Retrieve the item from your Strapi database using the Strapi SDK
-          const product = await strapi.services.item.findOne({ id });
-
-          console.log(product);
+          const product = await strapi.services.item.findOne({ id: productId });
 
           // Calculate the new stock level
           const newStock = product.stockLevel - quantity;
 
-          console.log(stockLevel);
-          console.log(newStock);
-
           // Update the stock level in your Strapi database using the Strapi SDK
-          await strapi.services.item.update({ id }, { stockLevel: newStock });
+          await strapi.services.item.update(
+            { id: productId },
+            { stockLevel: newStock }
+          );
         }
-
-        // Send a success response to Stripe
-        ctx.send({ received: true });
-      } catch (err) {
-        // Handle any errors that occur during the update process
-        console.log(err);
-        ctx.send({ received: false, error: err });
       }
-    },
 
-    // Define your other controller actions here, such as index, create, update, etc.
+      // Send a success response to Stripe
+      ctx.send({ received: true });
+    } catch (err) {
+      // Handle any errors that occur during the update process
+      console.log(err);
+      ctx.send({ received: false, error: err });
+    }
   },
-  {
-    routes: {
-      webhook: {
-        method: "POST",
-      },
-    },
-  }
-);
+  // ...
+};
