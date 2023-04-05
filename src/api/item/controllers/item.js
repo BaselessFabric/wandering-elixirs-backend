@@ -46,6 +46,7 @@ module.exports = createCoreController(
         ctx.send({ received: true });
       } catch (err) {
         // Handle any errors that occur during the update process
+        console.log(err);
         ctx.send({ received: false, error: err });
       }
     },
