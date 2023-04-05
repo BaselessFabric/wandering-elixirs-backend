@@ -9,6 +9,7 @@ module.exports = createCoreController(
   ({ strapi }) => ({
     // Define a custom action to handle the webhook request from Stripe
     async handleWebhook(ctx) {
+      console.log(ctx.request);
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
       const sig = ctx.request.headers["stripe-signature"];
 

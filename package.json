@@ -16,6 +16,7 @@
     "@strapi/strapi": "4.6.1",
     "@stripe/stripe-js": "^1.52.0",
     "better-sqlite3": "8.0.1",
+    "koa-bodyparser": "^4.4.0",
     "pg": "^8.10.0",
     "pg-connection-string": "^2.5.0",
     "stripe": "^11.16.0"

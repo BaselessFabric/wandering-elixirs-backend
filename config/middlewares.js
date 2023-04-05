@@ -1,3 +1,5 @@
+const bodyParser = require("koa-bodyparser");
+
 module.exports = [
   "strapi::errors",
   {
@@ -27,6 +29,12 @@ module.exports = [
     },
   },
   "strapi::cors",
+  {
+    name: "bodyparser",
+    middleware: bodyParser(),
+    enabled: true,
+    before: "strapi::router",
+  },
   "strapi::poweredBy",
   "strapi::logger",
   "strapi::query",
