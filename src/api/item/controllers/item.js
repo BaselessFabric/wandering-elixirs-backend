@@ -19,31 +19,34 @@ module.exports = createCoreController(
           webhookSecret
         );
 
-        const { data } = ctx.request.body;
+        if (event.type === "checkout.session.completed") {
+          const checkoutSession = await stripe.checkout.sessions.retrieve(
+            event.data.object.id
+          );
 
-        console.log(data);
+          // Loop through the line items in the checkout session
+          for (const lineItem of checkoutSession.line_items) {
+            const { price, quantity } = lineItem;
+            const productId = price.product;
 
-        // Loop through the line items in the Stripe webhook payload
-        for (const item of data.object.lines.data) {
-          const { id, quantity } = item; // Extract the product ID and quantity
+            // Retrieve the item from your Strapi database using the Strapi SDK
+            const product = await strapi.services.item.findOne({
+              id: productId,
+            });
 
-          // Retrieve the item from your Strapi database using the Strapi SDK
-          const product = await strapi.services.item.findOne({ id });
+            // Calculate the new stock level
+            const newStock = product.stockLevel - quantity;
 
-          console.log(product);
+            // Update the stock level in your Strapi database using the Strapi SDK
+            await strapi.services.item.update(
+              { id: productId },
+              { stockLevel: newStock }
+            );
+          }
 
-          // Calculate the new stock level
-          const newStock = product.stockLevel - quantity;
-
-          console.log(stockLevel);
-          console.log(newStock);
-
-          // Update the stock level in your Strapi database using the Strapi SDK
-          await strapi.services.item.update({ id }, { stockLevel: newStock });
+          // Send a success response to Stripe
+          ctx.send({ received: true });
         }
-
-        // Send a success response to Stripe
-        ctx.send({ received: true });
       } catch (err) {
         // Handle any errors that occur during the update process
         console.log(err);
