@@ -19,10 +19,15 @@ module.exports = createCoreController(
           webhookSecret
         );
 
+        console.log(event);
+
         if (event.type === "checkout.session.completed") {
           const checkoutSession = await stripe.checkout.sessions.retrieve(
-            event.data.object.id
+            event.data.object.id,
+            { expand: ["line_items"] }
           );
+
+          console.log(checkoutSession);
 
           // Loop through the line items in the checkout session
           for (const lineItem of checkoutSession.line_items) {
