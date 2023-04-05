@@ -9,7 +9,16 @@ module.exports = createCoreController(
   {
     // Define a custom action to handle the webhook request from Stripe
     async webhook(ctx) {
+      const { body, headers } = ctx.request;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
       try {
+        const event = stripe.webhooks.constructEvent(
+          body,
+          headers["stripe-signature"],
+          webhookSecret
+        );
+
         const { data } = ctx.request.body;
 
         console.log(data);
