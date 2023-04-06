@@ -44,6 +44,7 @@ module.exports = createCoreController("api::item.item", ({ strapi }) => ({
         );
 
         console.log("lineitems: ", lineItems);
+        console.log("data.price informatgion: ", lineItems.data.price);
 
         // Loop through the line items in the checkout session
         for (const lineItem of lineItems.data) {
