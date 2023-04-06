@@ -1,42 +1,61 @@
 "use strict";
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Import the Stripe module
+const Stripe = require("stripe"); // Import the Stripe module
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const { createCoreController } = require("@strapi/strapi").factories;
 
 module.exports = createCoreController("api::item.item", ({ strapi }) => ({
   // Define a custom action to handle the webhook request from Stripe
   async handleWebhook(ctx) {
-    console.log(ctx.request);
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    const sig = ctx.request.headers["stripe-signature"];
+    // console.log(stripe);
+
+    // const sig = ctx.request.headers["stripe-signature"];
+    // console.log("sig: ", sig);
+    // console.log("data :", ctx.request.data);
+    // console.log("body :", ctx.request.body.id);
+    // console.log("stringify: ", JSON.stringify(ctx.request.body));
+    // console.log("rawBody :", ctx.request.rawBody);
+    // console.log("request :", ctx.request);
+
+    // const sessionId = ctx.request.body.data.object.id;
+    // console.log("session: ", sessionId);
+
+    // try {
+
+    //   const event = stripe.webhooks.constructEvent(
+    //     ctx.request.body,
+    //     sig,
+    //     webhookSecret
+    //   );
+
+    //   console.log("event: ", event);
+    //   console.log("Error:", err.message);
 
     try {
-      const event = stripe.webhooks.constructEvent(
-        ctx.request.rawBody,
-        sig,
-        webhookSecret
-      );
-
-      if (event.type === "checkout.session.completed") {
-        const checkoutSession = await stripe.checkout.sessions.retrieve(
-          event.data.object.id
-        );
+      if (ctx.request.body.type === "checkout.session.completed") {
+        const checkoutSession = await ctx.request.body.data.object.id;
 
         // Get the line items for the checkout session
         const lineItems = await stripe.checkout.sessions.listLineItems(
-          checkoutSession.id
+          checkoutSession
         );
+
+        console.log("lineitems: ", lineItems);
 
         // Loop through the line items in the checkout session
         for (const lineItem of lineItems.data) {
           const { price, quantity } = lineItem;
           const productId = price.product;
+          console.log("prodId: ", productId);
+          console.log("quantity: ", quantity);
 
           // Retrieve the item from your Strapi database using the Strapi SDK
           const product = await strapi.services.item.findOne({
             id: productId,
           });
+          console.log("product: ", product);
 
           // Calculate the new stock level
           const newStock = product.stockLevel - quantity;
