@@ -39,32 +39,34 @@ module.exports = createCoreController("api::item.item", ({ strapi }) => ({
 
         // Get the line items for the checkout session
         const lineItems = await stripe.checkout.sessions.listLineItems(
-          checkoutSession,
-          { expand: ["data.price"] }
+          checkoutSession
         );
 
-        console.log("lineitems: ", lineItems);
-        console.log("data.price informatgion: ", lineItems.data.price);
+        console.log("lineitems: ", lineItems.data);
+        // console.log("data.price informatgion: ", lineItems.data.price);
+        console.log("lineItems length:", lineItems.data.length);
 
         // Loop through the line items in the checkout session
         for (const lineItem of lineItems.data) {
           const { price, quantity } = lineItem;
-          const productId = price.metadata.custom_product_id;
-          console.log("prodId: ", productId);
-          console.log("quantity: ", quantity);
+          //   const productId = price.metadata.custom_product_id;
+          const { metadata } = price;
+          const { custom_product_id } = metadata;
+          console.log("metadata: ", metadata);
+          console.log("customproductID: ", custom_product_id);
 
           // Retrieve the item from your Strapi database using the Strapi SDK
           const product = await strapi.services.item.findOne({
-            id: productId,
+            id: custom_product_id,
           });
-          console.log("product: ", product);
+          //   console.log("product: ", product);
 
           // Calculate the new stock level
           const newStock = product.stockLevel - quantity;
 
           // Update the stock level in your Strapi database using the Strapi SDK
           await strapi.services.item.update(
-            { id: productId },
+            { id: custom_product_id },
             { stockLevel: newStock }
           );
         }
