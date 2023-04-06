@@ -28,9 +28,7 @@ module.exports = createCoreController("api::order.order", ({ strapi }) => ({
               currency: "gbp",
               product_data: {
                 name: item.name,
-                metadata: {
-                  custom_product_id: product.id,
-                },
+                description: `Product ID:${product.id}`,
               },
               unit_amount: item.price * 100,
             },
@@ -45,6 +43,7 @@ module.exports = createCoreController("api::order.order", ({ strapi }) => ({
       // create a stripe session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
+
         customer_email: email,
         mode: "payment",
         success_url: "http://localhost:3000/checkout/success",
