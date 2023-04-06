@@ -39,7 +39,8 @@ module.exports = createCoreController("api::item.item", ({ strapi }) => ({
 
         // Get the line items for the checkout session
         const lineItems = await stripe.checkout.sessions.listLineItems(
-          checkoutSession
+          checkoutSession,
+          { expand: ["data.price.product.metadata"] }
         );
 
         console.log("lineitems: ", lineItems);
@@ -47,7 +48,7 @@ module.exports = createCoreController("api::item.item", ({ strapi }) => ({
         // Loop through the line items in the checkout session
         for (const lineItem of lineItems.data) {
           const { price, quantity } = lineItem;
-          const productId = price.product;
+          const productId = price.product.metadata.custom_product_id;
           console.log("prodId: ", productId);
           console.log("quantity: ", quantity);
 
