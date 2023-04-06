@@ -48,8 +48,10 @@ module.exports = createCoreController("api::item.item", ({ strapi }) => ({
 
         // Loop through the line items in the checkout session
         for (const lineItem of lineItems.data) {
-          const { price, quantity } = lineItem;
-          const custom_product_id = price.description;
+          const { price, quantity, description } = lineItem;
+          //   const custom_product_id = price.description.split(":")[1];
+          const custom_product_id = description;
+
           console.log("customproductID: ", custom_product_id);
 
           // Retrieve the item from your Strapi database using the Strapi SDK
