@@ -29,7 +29,6 @@ module.exports = createCoreController("api::order.order", ({ strapi }) => ({
               product_data: {
                 name: item.name,
                 description: product.id,
-                reference_id: product.id,
                 metadata: {
                   custom_product_id: product.id,
                 },
