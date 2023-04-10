@@ -53,6 +53,8 @@ module.exports = createCoreController("api::item.item", ({ strapi }) => ({
           const custom_product_id = description;
 
           console.log("customproductID: ", custom_product_id);
+          console.log("price: ", price);
+          console.log("quantity: ", quantity);
 
           // Retrieve the item from your Strapi database using the Strapi SDK
           const product = await strapi.services.item.findOne({
