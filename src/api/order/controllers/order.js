@@ -29,9 +29,15 @@ module.exports = createCoreController("api::order.order", ({ strapi }) => ({
               product_data: {
                 name: item.name,
                 description: product.id,
+                reference_id: product.id,
+                metadata: {
+                  custom_product_id: product.id,
+                },
               },
               unit_amount: item.price * 100,
-              reference_id: product.id,
+              metadata: {
+                custom_product_id: product.id,
+              },
             },
             quantity: product.count,
           };
@@ -60,6 +66,7 @@ module.exports = createCoreController("api::order.order", ({ strapi }) => ({
       // return the session id
       return { id: session.id };
     } catch (error) {
+      console.log(error);
       ctx.response.status = 500;
       return {
         error: { message: `There was a problem creating the charge` },
